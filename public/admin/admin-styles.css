@@ -1,0 +1,393 @@
+/* General Body & Container */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: #f4f7f6;
+  margin: 0;
+  color: #333;
+}
+
+.container, .admin-container {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
+
+h2 {
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 25px;
+}
+
+/* Admin Navbar Styles */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #007bff;
+  padding: 15px 30px;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  text-decoration: none;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 25px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links li a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.3s ease;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.nav-links li a:hover {
+  opacity: 0.8;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-links i {
+  margin-right: 8px;
+}
+
+.auth-links {
+  display: flex;
+  align-items: center;
+}
+
+/* Mobile Menu Toggle for Admin */
+.admin-mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.admin-mobile-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* General Buttons */
+.btn, button {
+  display: inline-block;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+  color: white;
+  background-color: #007bff;
+  transition: background-color 0.3s ease;
+}
+
+button:hover, .btn:hover {
+  background-color: #0056b3;
+}
+
+.btn-logout {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.btn-logout:hover {
+  background-color: #c82333;
+}
+
+.btn-edit {
+  background-color: #ffc107;
+  color: #212529;
+  margin-right: 10px;
+}
+
+.btn-edit:hover {
+  background-color: #e0a800;
+}
+
+.btn-delete, .small-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-delete:hover, .small-btn:hover {
+  background-color: #c82333;
+}
+
+.small-btn {
+    padding: 5px 10px;
+}
+
+/* Cards & Forms */
+.admin-card, .transactions {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+}
+
+.admin-card h3 {
+  margin-top: 0;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"], 
+select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Important */
+  background-color: #fff;
+  color: #333;
+  font-size: 14px;
+  outline: none;
+  pointer-events: auto;
+  user-select: text;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="number"]:focus,
+select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Tables */
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #f8f9fa;
+  color: #333;
+  font-weight: bold;
+}
+
+tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+/* Status Tags */
+.status {
+  padding: 5px 10px;
+  border-radius: 15px; /* Pill shape is nicer */
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status.success { background-color: #28a745; }
+.status.pending { background-color: #ffc107; color: #212529; }
+.status.failed { background-color: #dc3545; }
+
+/* Back Button */
+.back-button {
+  display: inline-block;
+  margin-top: 20px;
+  font-size: 16px;
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.back-button:hover { text-decoration: underline; }
+.back-button i { margin-right: 8px; }
+
+/* Modal Styles */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 1500;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  position: relative;
+  min-width: 300px;
+  max-width: 450px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  z-index: 1501;
+  pointer-events: auto;
+}
+
+.close {
+  position: absolute;
+  top: 10px; right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
+}
+
+.close:hover { color: #333; }
+
+/* Responsive Admin Navbar */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 15px 20px;
+    flex-wrap: wrap;
+  }
+  
+  .logo {
+    font-size: 20px;
+  }
+  
+  .admin-mobile-toggle {
+    display: block;
+  }
+  
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #007bff;
+    flex-direction: column;
+    gap: 0;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+  }
+  
+  .nav-links.show {
+    display: flex;
+  }
+  
+  .nav-links li {
+    width: 100%;
+  }
+  
+  .nav-links li a {
+    width: 100%;
+    padding: 15px 12px;
+    border-radius: 6px;
+    margin-bottom: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .nav-links li a:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(5px);
+  }
+  
+  .auth-links {
+    margin-top: 10px;
+  }
+  
+  .btn-logout {
+    padding: 10px 15px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 12px 15px;
+  }
+  
+  .logo {
+    font-size: 18px;
+  }
+  
+  .nav-links {
+    padding: 15px;
+  }
+  
+  .nav-links li a {
+    padding: 12px 10px;
+    font-size: 14px;
+  }
+  
+  .btn-logout {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+/* Admin Mobile Menu Toggle JavaScript Function */
+function toggleAdminMenu() {
+  const navLinks = document.querySelector('.nav-links');
+  if (navLinks) {
+    navLinks.classList.toggle('show');
+  }
+}
+
+// Close admin menu when clicking outside
+document.addEventListener('click', function(event) {
+  const navbar = document.querySelector('.navbar');
+  const mobileToggle = document.querySelector('.admin-mobile-toggle');
+  const isClickInsideNavbar = navbar && navbar.contains(event.target);
+  const isClickOnToggle = mobileToggle && mobileToggle.contains(event.target);
+  
+  if (!isClickInsideNavbar && !isClickOnToggle) {
+    const navLinks = document.querySelector('.nav-links');
+    if (navLinks) navLinks.classList.remove('show');
+  }
+});
+
+// Close admin menu when window is resized to desktop
+window.addEventListener('resize', function() {
+  if (window.innerWidth > 768) {
+    const navLinks = document.querySelector('.nav-links');
+    if (navLinks) navLinks.classList.remove('show');
+  }
+});

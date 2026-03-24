@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="View and print your mobile data purchase receipt. Transaction details for your MTN, Telecel, or AirtelTigo data bundle purchase in Ghana.">
+  <meta name="keywords" content="receipt, mobile data, Ghana, MTN, Telecel, AirtelTigo, data bundles, transaction">
+  <meta name="author" content="DataHarbour">
+  <meta name="robots" content="noindex, follow">
+  <title>Receipt - DataHarbour | Mobile Data Purchase Receipt</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <!-- Modern Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="index.html" class="navbar-brand">
+        <div class="brand-icon">DH</div>
+        <div class="brand-text">DataHarbour</div>
+      </a>
+      
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a href="mtn.html" class="nav-link">
+            <img src="images/mtn.png" alt="MTN">
+            <span class="nav-tooltip">MTN Ghana</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="telecel.html" class="nav-link">
+            <img src="images/telecel.png" alt="Telecel">
+            <span class="nav-tooltip">Telecel Ghana</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="at.html" class="nav-link">
+            <img src="images/airteltigo.png" alt="AirtelTigo">
+            <span class="nav-tooltip">AirtelTigo Ghana</span>
+          </a>
+        </li>
+      </ul>
+      
+      <div class="navbar-actions">
+        <!-- User info will be displayed here after login -->
+        <div id="user-info" class="user-menu" style="display: none;">
+          <a href="account.html" class="user-button" id="user-button">
+            <div class="user-avatar" id="user-avatar">U</div>
+            <span id="user-name">Account</span>
+          </a>
+          <a href="#" onclick="logout()" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            Logout
+          </a>
+        </div>
+        
+        <!-- Default auth links for logged out users -->
+        <div id="auth-links-default" class="auth-buttons">
+          <a href="login.html" class="auth-btn login">
+            <i class="fas fa-sign-in-alt"></i>
+            Login
+          </a>
+          <a href="register.html" class="auth-btn register">
+            <i class="fas fa-user-plus"></i>
+            Register
+          </a>
+          <a href="account.html" class="auth-btn account">
+            <i class="fas fa-user"></i>
+            Account
+          </a>
+        </div>
+        
+        <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-content">
+    <!-- Receipt Section -->
+  <div class="receipt-wrapper">
+    <div class="container">
+      <a href="dashboard.html" class="back-button">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+      </a>
+      
+      <div class="receipt-card">
+        <div class="receipt-header">
+          <div class="receipt-icon">
+            <i class="fas fa-receipt"></i>
+          </div>
+          <div class="receipt-title">
+            <h1>Payment Receipt</h1>
+            <p>Transaction completed successfully</p>
+          </div>
+          <button class="print-btn" onclick="window.print()">
+            <i class="fas fa-print"></i>
+            Print Receipt
+          </button>
+        </div>
+        
+        <div id="alert" class="alert-message" style="display: none;"></div>
+        
+        <div class="receipt-content">
+          <div class="transaction-summary">
+            <div class="summary-item">
+              <span class="label">Transaction ID</span>
+              <span class="value" id="transactionId">-</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Date & Time</span>
+              <span class="value" id="transactionDate">-</span>
+            </div>
+            <div class="summary-item">
+              <span class="label">Status</span>
+              <span class="status-badge success" id="transactionStatus">-</span>
+            </div>
+          </div>
+          
+          <div class="receipt-sections">
+            <div class="receipt-section">
+              <h3><i class="fas fa-user"></i> Customer Information</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Name</span>
+                  <span class="info-value" id="customerName">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Email</span>
+                  <span class="info-value" id="customerEmail">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Phone</span>
+                  <span class="info-value" id="customerPhone">-</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="receipt-section">
+              <h3><i class="fas fa-shopping-cart"></i> Order Details</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="info-label">Network</span>
+                  <span class="info-value" id="network">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Data Bundle</span>
+                  <span class="info-value" id="dataBundle">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Recipient Phone</span>
+                  <span class="info-value" id="recipientPhone">-</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Payment Method</span>
+                  <span class="info-value" id="paymentMethod">-</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="receipt-section payment-section">
+              <h3><i class="fas fa-credit-card"></i> Payment Summary</h3>
+              <div class="payment-total">
+                <span class="total-label">Amount Paid</span>
+                <span class="total-amount" id="amountPaid">-</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="receipt-footer">
+          <div class="footer-message">
+            <i class="fas fa-check-circle"></i>
+            <div>
+              <h4>Thank you for your purchase!</h4>
+              <p>Your data bundle has been successfully delivered to your phone.</p>
+            </div>
+          </div>
+          
+          <div class="support-info">
+            <p>Need help? Contact us at <strong>support@dataharbour.com</strong></p>
+            <p><strong>DataHarbour Ghana</strong> - Your trusted mobile data provider</p>
+          </div>
+        </div>
+        
+        <div class="receipt-actions">
+          <button class="action-btn secondary" onclick="resendReceipt()">
+            <i class="fas fa-envelope"></i>
+            Resend Receipt
+          </button>
+          <button class="action-btn primary" onclick="window.location.href='dashboard.html'">
+            <i class="fas fa-tachometer-alt"></i>
+            View Dashboard
+          </button>
+          <button class="action-btn success" onclick="window.location.href='buy-plan.html'">
+            <i class="fas fa-shopping-cart"></i>
+            Buy More Data
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-brand">
+            <div class="brand-icon">DH</div>
+            <div class="brand-info">
+              <h3>DataHarbour</h3>
+              <p>Your trusted mobile data provider in Ghana</p>
+            </div>
+          </div>
+          <div class="footer-description">
+            <p>Fast, reliable, and affordable mobile data bundles for MTN, Telecel, and AirtelTigo networks. Experience seamless connectivity with our 20-minute delivery guarantee.</p>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Networks</h4>
+          <ul class="footer-links">
+            <li><a href="mtn.html"><img src="images/mtn.png" alt="MTN" class="footer-network-icon"> MTN Ghana</a></li>
+            <li><a href="telecel.html"><img src="images/telecel.png" alt="Telecel" class="footer-network-icon"> Telecel Ghana</a></li>
+            <li><a href="at.html"><img src="images/airteltigo.png" alt="AirtelTigo" class="footer-network-icon"> AirtelTigo Ghana</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Services</h4>
+          <ul class="footer-links">
+            <li><a href="buy-plan.html">Buy Data Plans</a></li>
+            <li><a href="dashboard.html">Account Dashboard</a></li>
+            <li><a href="receipt.html">Transaction History</a></li>
+            <li><a href="account.html">Account Settings</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Delivery Info</h4>
+          <ul class="footer-links">
+            <li><i class="fas fa-clock"></i> 20-Minute Delivery</li>
+            <li><i class="fas fa-shield-check"></i> Guaranteed Delivery</li>
+            <li><i class="fas fa-sms"></i> SMS Notifications</li>
+            <li><i class="fas fa-envelope"></i> Email Receipts</li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4>Support</h4>
+          <ul class="footer-links">
+            <li><a href="mailto:support@dataharbour.com"><i class="fas fa-envelope"></i> support@dataharbour.com</a></li>
+            <li><a href="tel:+233123456789"><i class="fas fa-phone"></i> +233 123 456 789</a></li>
+            <li><i class="fas fa-clock"></i> 24/7 Customer Support</li>
+            <li><i class="fas fa-headset"></i> Live Chat Available</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <div class="footer-bottom-content">
+          <p>&copy; 2026 DataHarbour Ghana. All rights reserved.</p>
+          <div class="footer-bottom-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Contact Us</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    let currentReference = null;
+    
+    // Logout function
+    function logout() {
+      fetch('/api/logout', {
+        method: 'POST'
+      })
+      .then(res => res.json())
+      .then(response => {
+        if (response.success) {
+          window.location.href = "index.html";
+        } else {
+          alert("Logout failed: " + (response.error || "Unknown error"));
+        }
+      })
+      .catch(err => {
+        console.error('Logout error:', err);
+        window.location.href = "index.html";
+      });
+    }
+
+    // Resend receipt
+    function resendReceipt() {
+      if (!currentReference) {
+        alert('No transaction reference available');
+        return;
+      }
+      
+      // Show loading in the alert area
+      const alertDiv = document.getElementById('alert');
+      alertDiv.className = 'alert-message info';
+      alertDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Resending receipt...';
+      alertDiv.style.display = 'block';
+      
+      fetch('/api/payment/resend-receipt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ reference: currentReference })
+      })
+      .then(res => res.json())
+      .then(response => {
+        if (response.success) {
+          alertDiv.className = 'alert-message success';
+          alertDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + response.message;
+        } else {
+          alertDiv.className = 'alert-message error';
+          alertDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (response.error || 'Failed to resend receipt');
+        }
+        
+        // Hide alert after 5 seconds
+        setTimeout(() => {
+          alertDiv.style.display = 'none';
+        }, 5000);
+      })
+      .catch(err => {
+        console.error('Error resending receipt:', err);
+        alertDiv.className = 'alert-message error';
+        alertDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Failed to resend receipt';
+        
+        // Hide alert after 5 seconds
+        setTimeout(() => {
+          alertDiv.style.display = 'none';
+        }, 5000);
+      });
+    }
+
+    // Get transaction details from URL and fetch real data
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const reference = urlParams.get('reference');
+      
+      if (reference) {
+        currentReference = reference;
+        
+        // Fetch real transaction details from API
+        fetch(`/api/transaction/${reference}`)
+          .then(res => res.json())
+          .then(transaction => {
+            if (transaction.error) {
+              document.getElementById('transactionId').textContent = reference;
+              document.getElementById('transactionDate').textContent = new Date().toLocaleString();
+              document.getElementById('transactionStatus').textContent = 'Pending';
+              document.getElementById('transactionReference').textContent = reference;
+              document.getElementById('customerName').textContent = 'John Doe';
+              document.getElementById('customerEmail').textContent = 'john@example.com';
+              document.getElementById('customerPhone').textContent = '+233 123 456 789';
+              document.getElementById('network').textContent = 'MTN';
+              document.getElementById('dataBundle').textContent = '5GB Data Bundle';
+              document.getElementById('recipientPhone').textContent = '+233 123 456 789';
+              document.getElementById('paymentMethod').textContent = 'Paystack';
+              document.getElementById('amountPaid').textContent = 'GHC 15.00';
+              return;
+            }
+            
+            document.getElementById('transactionId').textContent = transaction.payment_reference;
+            document.getElementById('transactionDate').textContent = new Date(transaction.created_at).toLocaleString();
+            document.getElementById('transactionStatus').textContent = transaction.status;
+            document.getElementById('transactionStatus').className = 'status ' + transaction.status;
+            document.getElementById('transactionReference').textContent = transaction.payment_reference;
+            document.getElementById('customerName').textContent = transaction.full_name;
+            document.getElementById('customerEmail').textContent = transaction.email;
+            document.getElementById('customerPhone').textContent = transaction.phone || 'N/A';
+            document.getElementById('network').textContent = transaction.network;
+            document.getElementById('dataBundle').textContent = transaction.size + 'GB Data Bundle';
+            document.getElementById('recipientPhone').textContent = transaction.phone_number;
+            document.getElementById('paymentMethod').textContent = transaction.payment_method || 'Paystack';
+            document.getElementById('amountPaid').textContent = 'GHC ' + parseFloat(transaction.amount).toFixed(2);
+          })
+          .catch(err => {
+            console.error('Error fetching transaction details:', err);
+            // Show placeholder data if fetch fails
+            document.getElementById('transactionId').textContent = reference;
+            document.getElementById('transactionDate').textContent = new Date().toLocaleString();
+            document.getElementById('transactionStatus').textContent = 'Success';
+            document.getElementById('transactionReference').textContent = reference;
+            document.getElementById('customerName').textContent = 'John Doe';
+            document.getElementById('customerEmail').textContent = 'john@example.com';
+            document.getElementById('customerPhone').textContent = '+233 123 456 789';
+            document.getElementById('network').textContent = 'MTN';
+            document.getElementById('dataBundle').textContent = '5GB Data Bundle';
+            document.getElementById('recipientPhone').textContent = '+233 123 456 789';
+            document.getElementById('paymentMethod').textContent = 'Paystack';
+            document.getElementById('amountPaid').textContent = 'GHC 15.00';
+          });
+      }
+    });
+  </script>
+</body>
+</html>
