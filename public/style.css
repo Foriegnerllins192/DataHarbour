@@ -442,7 +442,7 @@ body {
 }
 
 .navbar-actions {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 12px;
   min-height: 40px;
@@ -493,9 +493,29 @@ body {
 
 .auth-buttons {
   display: flex;
-  flex-direction: row;
+  flex-direction: row !important;
   align-items: center;
   gap: 8px;
+}
+
+/* Force horizontal layout on all screen sizes except mobile */
+@media (min-width: 769px) {
+  .auth-buttons,
+  #auth-links-default {
+    display: flex !important;
+    flex-direction: row !important;
+  }
+}
+
+/* Ensure horizontal layout on desktop and tablet */
+@media (min-width: 481px) {
+  .auth-buttons {
+    flex-direction: row !important;
+  }
+  
+  #auth-links-default {
+    flex-direction: row !important;
+  }
 }
 
 .auth-btn {
@@ -669,7 +689,7 @@ body {
   }
   
   .auth-buttons {
-    display: none;
+    display: none !important;
     position: absolute;
     top: 100%;
     right: 0;
@@ -746,9 +766,14 @@ body {
   }
   
   .auth-buttons {
-    flex-direction: column;
+    display: none !important;
+    flex-direction: column !important;
     gap: 6px;
     width: 100%;
+  }
+  
+  .auth-buttons.show {
+    display: flex !important;
   }
   
   .auth-btn {
@@ -1759,7 +1784,6 @@ tr:hover {
 .no-plans-message p {
   font-size: 1.2rem;
   font-weight: 500;
-}
 }
 
 .plan-header {
@@ -3786,10 +3810,11 @@ tr:hover {
 
 /* Number Prefixes */
 .number-prefixes {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 15px;
   margin-bottom: 20px;
+  justify-content: center;
 }
 
 .prefix-item {
@@ -3800,6 +3825,9 @@ tr:hover {
   background: #f8f9fa;
   border-radius: 10px;
   border-left: 4px solid #667eea;
+  flex: 1;
+  min-width: 120px;
+  justify-content: center;
 }
 
 .prefix {
@@ -3823,9 +3851,10 @@ tr:hover {
 /* Notification Types */
 .notification-types {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 15px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .notification-item {
@@ -3835,6 +3864,8 @@ tr:hover {
   padding: 15px;
   background: #f8f9fa;
   border-radius: 10px;
+  flex: 1;
+  min-width: 200px;
 }
 
 .notification-item i {
@@ -3972,7 +4003,7 @@ tr:hover {
   }
   
   .number-prefixes {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     gap: 10px;
   }
   
@@ -4021,6 +4052,7 @@ tr:hover {
   }
   
   .notification-types {
+    flex-direction: column;
     gap: 10px;
   }
   
@@ -4288,7 +4320,7 @@ function toggleMobileMenu() {
   }
   
   .auth-buttons {
-    flex-direction: column;
+    flex-direction: column !important;
     gap: 6px;
     width: 100%;
   }
@@ -4922,4 +4954,220 @@ function toggleMobileMenu() {
 .plan-buy-btn,
 .no-plans-message {
   display: none !important;
+}
+/* Enhanced Mobile Menu Control */
+@media (min-width: 769px) {
+  /* Ensure auth buttons display horizontally on desktop */
+  #auth-links-default {
+    display: flex !important;
+    flex-direction: row !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Ensure auth buttons are completely hidden on mobile by default */
+  #auth-links-default {
+    display: none !important;
+  }
+  
+  /* Only show when explicitly toggled */
+  #auth-links-default.show {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Same for user menu */
+  #user-info {
+    display: none !important;
+  }
+  
+  #user-info.show {
+    display: flex !important;
+  }
+}
+
+/* Ensure mobile menu toggle is visible on mobile */
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: block !important;
+    position: relative;
+    z-index: 1002;
+  }
+}
+/* Discount Banner Styles */
+.discount-banner {
+  margin: 20px 0;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.5s ease-out;
+}
+
+.discount-banner.logged-in {
+  background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+  color: white;
+}
+
+.discount-banner.guest {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+  color: white;
+}
+
+.discount-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.discount-content i {
+  font-size: 2rem;
+  opacity: 0.9;
+}
+
+.discount-text {
+  flex: 1;
+  min-width: 200px;
+}
+
+.discount-text strong {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+
+.discount-text span {
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+
+.discount-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.discount-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.discount-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.discount-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.dismiss-btn {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.dismiss-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* Plan Card Pricing Styles */
+.plan-card-price {
+  position: relative;
+}
+
+.original-price {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 0.9rem;
+  display: block;
+}
+
+.discounted-price {
+  color: #27ae60;
+  font-weight: 700;
+  font-size: 1.2rem;
+  display: block;
+}
+
+.discount-label {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #e74c3c;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Summary Pricing Styles */
+.original-price-small {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 0.9rem;
+  margin-right: 10px;
+}
+
+.final-price {
+  color: #27ae60;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.savings {
+  color: #27ae60;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-left: 10px;
+}
+
+/* Animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .discount-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .discount-actions {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .discount-btn {
+    flex: 1;
+    text-align: center;
+  }
 }

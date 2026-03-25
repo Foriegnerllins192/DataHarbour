@@ -394,41 +394,115 @@
       // Scroll to step
       planStep.scrollIntoView({ behavior: 'smooth' });
       
-      // Fetch plans
+      // Check if user is logged in for discount
+      fetch('/api/user')
+        .then(res => res.json())
+        .then(user => {
+          const isLoggedIn = !user.error;
+          
+          // Fetch plans
+          fetch(`/api/plans?provider=${network}`)
+            .then(res => res.json())
+            .then(plans => {
+              availablePlans = plans;
+              if (plans.length > 0) {
+                plansGrid.innerHTML = '';
+                plans.forEach(plan => {
+                  const originalPrice = parseFloat(plan.customer_price || plan.price);
+                  const discountedPrice = isLoggedIn ? originalPrice * 0.97 : originalPrice; // 3% discount
+                  
+                  const planCard = document.createElement('div');
+                  planCard.className = 'plan-selection-card';
+                  planCard.dataset.planId = plan.id;
+                  
+                  let priceHTML = '';
+                  if (isLoggedIn && discountedPrice < originalPrice) {
+                    priceHTML = `
+                      <div class="plan-card-price">
+                        <span class="original-price">GHC ${originalPrice.toFixed(2)}</span>
+                        <span class="discounted-price">GHC ${discountedPrice.toFixed(2)}</span>
+                        <span class="discount-label">3% OFF</span>
+                      </div>
+                    `;
+                  } else {
+                    priceHTML = `<div class="plan-card-price">GHC ${originalPrice.toFixed(2)}</div>`;
+                  }
+                  
+                  planCard.innerHTML = `
+                    <div class="plan-card-size">${plan.size}<span>GB</span></div>
+                    ${priceHTML}
+                  `;
+                  
+                  // Store both prices for later use
+                  planCard.dataset.originalPrice = originalPrice.toFixed(2);
+                  planCard.dataset.finalPrice = discountedPrice.toFixed(2);
+                  planCard.dataset.isDiscounted = isLoggedIn && discountedPrice < originalPrice;
+                  
+                  planCard.addEventListener('click', () => selectPlan(plan, discountedPrice, originalPrice, isLoggedIn));
+                  plansGrid.appendChild(planCard);
+                });
+                
+                // Hide loading and show plans
+                plansLoading.style.display = 'none';
+                plansGrid.style.display = 'grid';
+              } else {
+                plansLoading.innerHTML = '<p style="text-align: center; color: #666;">No plans available for this network</p>';
+              }
+            })
+            .catch(err => {
+              console.error('Error loading plans:', err);
+              plansLoading.innerHTML = '<p style="text-align: center; color: #dc3545;">Error loading plans. Please try again.</p>';
+              showAlert('Error loading plans. Please try again.', 'error');
+            });
+        })
+        .catch(err => {
+          console.error('Error checking user status:', err);
+          // Continue as guest
+          loadPlansAsGuest(network);
+        });
+    }
+
+    function loadPlansAsGuest(network) {
+      // Fetch plans without discount
       fetch(`/api/plans?provider=${network}`)
         .then(res => res.json())
         .then(plans => {
           availablePlans = plans;
           if (plans.length > 0) {
+            const plansGrid = document.getElementById('plansGrid');
+            const plansLoading = document.getElementById('plansLoading');
+            
             plansGrid.innerHTML = '';
             plans.forEach(plan => {
+              const originalPrice = parseFloat(plan.customer_price || plan.price);
+              
               const planCard = document.createElement('div');
               planCard.className = 'plan-selection-card';
               planCard.dataset.planId = plan.id;
               planCard.innerHTML = `
                 <div class="plan-card-size">${plan.size}<span>GB</span></div>
-                <div class="plan-card-price">GHC ${parseFloat(plan.customer_price || plan.price).toFixed(2)}</div>
+                <div class="plan-card-price">GHC ${originalPrice.toFixed(2)}</div>
               `;
-              planCard.addEventListener('click', () => selectPlan(plan));
+              
+              planCard.dataset.originalPrice = originalPrice.toFixed(2);
+              planCard.dataset.finalPrice = originalPrice.toFixed(2);
+              planCard.dataset.isDiscounted = false;
+              
+              planCard.addEventListener('click', () => selectPlan(plan, originalPrice, originalPrice, false));
               plansGrid.appendChild(planCard);
             });
             
-            // Hide loading and show plans
             plansLoading.style.display = 'none';
             plansGrid.style.display = 'grid';
-          } else {
-            plansLoading.innerHTML = '<p style="text-align: center; color: #666;">No plans available for this network</p>';
           }
-        })
-        .catch(err => {
-          console.error('Error loading plans:', err);
-          plansLoading.innerHTML = '<p style="text-align: center; color: #dc3545;">Error loading plans. Please try again.</p>';
-          showAlert('Error loading plans. Please try again.', 'error');
         });
     }
 
-    function selectPlan(plan) {
+    function selectPlan(plan, finalPrice, originalPrice, isDiscounted) {
       selectedPlan = plan;
+      selectedPlan.finalPrice = finalPrice;
+      selectedPlan.originalPrice = originalPrice;
+      selectedPlan.isDiscounted = isDiscounted;
       
       // Update plan cards
       document.querySelectorAll('.plan-selection-card').forEach(card => {
@@ -439,7 +513,18 @@
       // Update summary
       document.getElementById('summaryNetwork').textContent = selectedNetwork.charAt(0).toUpperCase() + selectedNetwork.slice(1);
       document.getElementById('summaryPlan').textContent = `${plan.size}GB`;
-      document.getElementById('summaryPrice').textContent = `GHC ${parseFloat(plan.customer_price || plan.price).toFixed(2)}`;
+      
+      // Update price display in summary
+      const summaryPriceElement = document.getElementById('summaryPrice');
+      if (isDiscounted) {
+        summaryPriceElement.innerHTML = `
+          <span class="original-price-small">GHC ${originalPrice.toFixed(2)}</span>
+          <span class="final-price">GHC ${finalPrice.toFixed(2)}</span>
+          <span class="savings">(Save GHC ${(originalPrice - finalPrice).toFixed(2)})</span>
+        `;
+      } else {
+        summaryPriceElement.textContent = `GHC ${finalPrice.toFixed(2)}`;
+      }
       
       // Show purchase form
       const purchaseStep = document.getElementById('purchaseStep');
@@ -510,7 +595,9 @@
           plan: `${selectedPlan.size}GB`,
           plan_id: selectedPlan.id,
           phone: validatedPhoneNumber,
-          price: selectedPlan.customer_price || selectedPlan.price
+          price: selectedPlan.finalPrice || selectedPlan.customer_price || selectedPlan.price,
+          original_price: selectedPlan.originalPrice || selectedPlan.customer_price || selectedPlan.price,
+          is_discounted: selectedPlan.isDiscounted || false
         });
         
         setTimeout(() => {
@@ -539,7 +626,9 @@
           plan: `${selectedPlan.size}GB`,
           plan_id: selectedPlan.id,
           phone: phoneNumber,
-          price: selectedPlan.customer_price || selectedPlan.price
+          price: selectedPlan.finalPrice || selectedPlan.customer_price || selectedPlan.price,
+          original_price: selectedPlan.originalPrice || selectedPlan.customer_price || selectedPlan.price,
+          is_discounted: selectedPlan.isDiscounted || false
         });
         
         setTimeout(() => {
@@ -656,32 +745,51 @@
 
     // Check authentication and handle URL parameters
     document.addEventListener('DOMContentLoaded', function() {
-      // Check authentication
+      // Check authentication (optional for guest purchases)
       fetch('/api/user')
         .then(res => res.json())
         .then(user => {
-          if (user.error) {
-            window.location.href = 'login.html';
-            return;
-          }
-          
-          // Show user info
-          if (document.getElementById('user-info')) {
-            document.getElementById('user-info').style.display = 'flex';
-          }
-          if (document.getElementById('auth-links-default')) {
-            document.getElementById('auth-links-default').style.display = 'none';
-          }
-          if (document.getElementById('user-name')) {
-            document.getElementById('user-name').textContent = user.full_name || 'Account';
-          }
-          if (document.getElementById('user-avatar')) {
-            const avatar = document.getElementById('user-avatar');
-            avatar.textContent = (user.full_name || 'User').charAt(0).toUpperCase();
+          if (!user.error) {
+            // User is logged in - show user info and apply discount
+            if (document.getElementById('user-info')) {
+              document.getElementById('user-info').style.display = 'flex';
+            }
+            if (document.getElementById('auth-links-default')) {
+              document.getElementById('auth-links-default').style.display = 'none';
+            }
+            if (document.getElementById('user-name')) {
+              document.getElementById('user-name').textContent = user.full_name || 'Account';
+            }
+            if (document.getElementById('user-avatar')) {
+              const avatar = document.getElementById('user-avatar');
+              avatar.textContent = (user.full_name || 'User').charAt(0).toUpperCase();
+            }
+            
+            // Show discount banner for logged-in users
+            showDiscountBanner();
+          } else {
+            // User not logged in - show auth links and guest purchase option
+            if (document.getElementById('user-info')) {
+              document.getElementById('user-info').style.display = 'none';
+            }
+            if (document.getElementById('auth-links-default')) {
+              document.getElementById('auth-links-default').style.display = 'flex';
+            }
+            
+            // Show registration incentive banner
+            showRegistrationIncentive();
           }
         })
         .catch(err => {
           console.error('Error checking auth status:', err);
+          // Allow guest purchase even if auth check fails
+          if (document.getElementById('user-info')) {
+            document.getElementById('user-info').style.display = 'none';
+          }
+          if (document.getElementById('auth-links-default')) {
+            document.getElementById('auth-links-default').style.display = 'flex';
+          }
+          showRegistrationIncentive();
         });
 
       // Handle URL parameters for pre-selection
@@ -695,6 +803,57 @@
         }, 500);
       }
     });
+
+    // Show discount banner for logged-in users
+    function showDiscountBanner() {
+      const discountBanner = document.createElement('div');
+      discountBanner.className = 'discount-banner logged-in';
+      discountBanner.innerHTML = `
+        <div class="discount-content">
+          <i class="fas fa-percentage"></i>
+          <div class="discount-text">
+            <strong>Member Discount Active!</strong>
+            <span>You're getting 3% off all data plans as a registered member</span>
+          </div>
+          <div class="discount-badge">3% OFF</div>
+        </div>
+      `;
+      
+      const container = document.querySelector('.buy-plan-wrapper .container');
+      const header = container.querySelector('.buy-plan-header');
+      container.insertBefore(discountBanner, header.nextSibling);
+    }
+
+    // Show registration incentive for guest users
+    function showRegistrationIncentive() {
+      const incentiveBanner = document.createElement('div');
+      incentiveBanner.className = 'discount-banner guest';
+      incentiveBanner.innerHTML = `
+        <div class="discount-content">
+          <i class="fas fa-gift"></i>
+          <div class="discount-text">
+            <strong>Get 3% Off All Data Plans!</strong>
+            <span>Register now and save on every purchase</span>
+          </div>
+          <div class="discount-actions">
+            <a href="register.html" class="discount-btn">Register & Save</a>
+            <button onclick="dismissIncentive()" class="dismiss-btn">Continue as Guest</button>
+          </div>
+        </div>
+      `;
+      
+      const container = document.querySelector('.buy-plan-wrapper .container');
+      const header = container.querySelector('.buy-plan-header');
+      container.insertBefore(incentiveBanner, header.nextSibling);
+    }
+
+    // Dismiss incentive banner
+    function dismissIncentive() {
+      const banner = document.querySelector('.discount-banner.guest');
+      if (banner) {
+        banner.style.display = 'none';
+      }
+    }
   </script>
 </body>
 </html>

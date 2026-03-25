@@ -465,6 +465,42 @@
         </div>
       </div>
 
+      <!-- Quick Upload Section -->
+      <div class="quick-upload-section" style="margin: 20px 0; text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+        <h3 style="margin-bottom: 15px; color: #333;">
+          <i class="fas fa-cloud-upload-alt"></i> Quick Image Upload
+        </h3>
+        <p style="color: #666; margin-bottom: 15px;">Upload images for your account or projects</p>
+        <input type="file" id="quickUploadInput" accept="image/*" style="display: none;" multiple>
+        <button onclick="document.getElementById('quickUploadInput').click()" class="upload-btn" style="
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 12px 25px;
+          border: none;
+          border-radius: 25px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          margin-right: 10px;
+        ">
+          <i class="fas fa-upload"></i> Choose Images
+        </button>
+        <a href="upload.html" class="upload-btn" style="
+          background: transparent;
+          color: #667eea;
+          padding: 12px 25px;
+          border: 2px solid #667eea;
+          border-radius: 25px;
+          font-weight: 600;
+          text-decoration: none;
+          transition: all 0.3s ease;
+          display: inline-block;
+        ">
+          <i class="fas fa-external-link-alt"></i> Full Upload Page
+        </a>
+        <div id="uploadMessage" style="margin-top: 15px; display: none;"></div>
+      </div>
+
       <div class="profile-details">
         <div class="detail-card">
           <div class="detail-label">
@@ -894,6 +930,76 @@
           console.error('Error fetching transaction stats:', err);
         });
     }
+
+    // Quick Upload Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const quickUploadInput = document.getElementById('quickUploadInput');
+      const uploadMessage = document.getElementById('uploadMessage');
+
+      if (quickUploadInput) {
+        quickUploadInput.addEventListener('change', async function(e) {
+          if (e.target.files.length === 0) return;
+
+          const files = Array.from(e.target.files);
+          showUploadMessage('Uploading images...', 'info');
+
+          try {
+            const formData = new FormData();
+            files.forEach(file => {
+              formData.append('images', file);
+            });
+
+            const response = await fetch('/api/upload/images', {
+              method: 'POST',
+              body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              showUploadMessage(`✅ ${result.message}`, 'success');
+              // Clear the input
+              e.target.value = '';
+            } else {
+              showUploadMessage(`❌ ${result.error}`, 'error');
+            }
+          } catch (error) {
+            console.error('Upload error:', error);
+            showUploadMessage('❌ Upload failed. Please try again.', 'error');
+          }
+        });
+      }
+
+      function showUploadMessage(message, type) {
+        const messageEl = document.getElementById('uploadMessage');
+        if (messageEl) {
+          messageEl.textContent = message;
+          messageEl.style.display = 'block';
+          messageEl.style.padding = '10px';
+          messageEl.style.borderRadius = '5px';
+          messageEl.style.marginTop = '15px';
+          
+          if (type === 'success') {
+            messageEl.style.background = '#d4edda';
+            messageEl.style.color = '#155724';
+            messageEl.style.border = '1px solid #c3e6cb';
+          } else if (type === 'error') {
+            messageEl.style.background = '#f8d7da';
+            messageEl.style.color = '#721c24';
+            messageEl.style.border = '1px solid #f5c6cb';
+          } else {
+            messageEl.style.background = '#d1ecf1';
+            messageEl.style.color = '#0c5460';
+            messageEl.style.border = '1px solid #bee5eb';
+          }
+
+          // Hide message after 5 seconds
+          setTimeout(() => {
+            messageEl.style.display = 'none';
+          }, 5000);
+        }
+      }
+    });
   </script>
 </body>
 </html>

@@ -16,15 +16,50 @@ const router = express.Router();
 // Initialize payment
 router.post('/initialize', async (req, res) => {
   try {
-    if (!req.session.user) {
-      logger.warn('Payment initialization attempt without authentication', { 
-        ip: req.ip, 
-        userAgent: req.get('User-Agent') 
+    let { plan_id, phone_number, payment_method, guest_email, guest_name } = req.body;
+    
+    // Check if user is logged in or if it's a guest purchase
+    const isGuest = !req.session.user;
+    let user = null;
+    let finalPrice = 0;
+    
+    if (isGuest) {
+      // Guest purchase - require email and name
+      if (!guest_email || !guest_name) {
+        return res.status(400).json({ 
+          error: 'Email and name are required for guest purchases' 
+        });
+      }
+      
+      // Create temporary user object for guest
+      user = {
+        id: null,
+        email: guest_email,
+        full_name: guest_name,
+        isGuest: true
+      };
+      
+      logger.info('Guest payment initialization started', {
+        guestEmail: guest_email,
+        guestName: guest_name,
+        planId: plan_id,
+        phoneNumber: phone_number
       });
-      return res.status(401).json({ error: 'Authentication required' });
+    } else {
+      // Logged in user
+      user = await User.findById(req.session.user.id);
+      if (!user) {
+        logger.error('Payment initialization failed - user not found', { userId: req.session.user.id });
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      logger.info('Member payment initialization started', {
+        userId: req.session.user.id,
+        planId: plan_id,
+        phoneNumber: phone_number,
+        paymentMethod: payment_method
+      });
     }
-
-    let { plan_id, phone_number, payment_method } = req.body;
 
     // Validate required fields
     if (!plan_id || !phone_number) {
@@ -38,14 +73,6 @@ router.post('/initialize', async (req, res) => {
     const confirmation_method = 'both';
     const confirmation_contact = phone_number; // Use phone for SMS
 
-    logger.info('Payment initialization started', {
-      userId: req.session.user.id,
-      planId: plan_id,
-      phoneNumber: phone_number,
-      paymentMethod: payment_method,
-      confirmationMethod: confirmation_method
-    });
-
     // Get plan details
     const plan = await DataPlan.getById(plan_id);
     if (!plan) {
@@ -53,18 +80,15 @@ router.post('/initialize', async (req, res) => {
       return res.status(404).json({ error: 'Plan not found' });
     }
 
-    // Get user details
-    const user = await User.findById(req.session.user.id);
-    if (!user) {
-      logger.error('Payment initialization failed - user not found', { userId: req.session.user.id });
-      return res.status(404).json({ error: 'User not found' });
-    }
+    // Calculate final price (3% discount for members)
+    const originalPrice = parseFloat(plan.customer_price || plan.price);
+    finalPrice = isGuest ? originalPrice : originalPrice * 0.97; // 3% discount for members
 
     // NETWORK-SPECIFIC PHONE VALIDATION
     logger.info('Starting network-specific phone validation', {
       phoneNumber: phone_number,
       network: plan.provider,
-      userId: user.id
+      userType: isGuest ? 'guest' : 'member'
     });
 
     const phoneValidation = await validationService.validatePhoneNumberForNetwork(
@@ -78,7 +102,7 @@ router.post('/initialize', async (req, res) => {
         network: plan.provider,
         error: phoneValidation.error,
         code: phoneValidation.code,
-        userId: user.id
+        userType: isGuest ? 'guest' : 'member'
       });
 
       return res.status(400).json({
@@ -92,7 +116,7 @@ router.post('/initialize', async (req, res) => {
     logger.info('Phone validation successful', {
       phoneNumber: phoneValidation.phoneNumber,
       network: phoneValidation.network,
-      userId: user.id
+      userType: isGuest ? 'guest' : 'member'
     });
 
     // Use validated phone number format
@@ -101,7 +125,7 @@ router.post('/initialize', async (req, res) => {
     // Handle Paystack payment (only option)
     const paymentData = {
       email: user.email,
-      amount: plan.customer_price || plan.price,
+      amount: finalPrice,
       metadata: {
         user_id: user.id,
         plan_id: plan.id,
@@ -109,28 +133,37 @@ router.post('/initialize', async (req, res) => {
         network: plan.provider,
         confirmation_method: confirmation_method,
         confirmation_contact: confirmation_contact,
-        user_email: user.email // Store user email for notifications
+        user_email: user.email,
+        is_guest: isGuest,
+        guest_name: isGuest ? user.full_name : null,
+        original_price: originalPrice,
+        final_price: finalPrice,
+        discount_applied: !isGuest
       }
     };
 
     const paymentResponse = await paymentService.initializePayment(
       user.email,
-      plan.customer_price || plan.price,
+      finalPrice,
       paymentData.metadata
     );
 
     if (paymentResponse.status) {
       // Create a pending transaction
       const transactionData = {
-        user_id: user.id,
+        user_id: user.id, // null for guests
         plan_id: plan.id,
         network: plan.provider,
         phone_number: phone_number,
-        amount: plan.customer_price || plan.price,
+        amount: finalPrice,
+        original_amount: originalPrice,
         status: 'pending',
         payment_reference: paymentResponse.data.reference,
         confirmation_method: confirmation_method,
-        confirmation_contact: confirmation_contact
+        confirmation_contact: confirmation_contact,
+        is_guest: isGuest,
+        guest_email: isGuest ? user.email : null,
+        guest_name: isGuest ? user.full_name : null
       };
 
       const transactionId = await Transaction.create(transactionData);
@@ -139,25 +172,33 @@ router.post('/initialize', async (req, res) => {
         userId: user.id,
         planId: plan.id,
         network: plan.provider,
-        amount: plan.customer_price || plan.price
+        amount: finalPrice,
+        originalAmount: originalPrice,
+        isGuest: isGuest,
+        discountApplied: !isGuest
       });
 
       logger.payment(paymentResponse.data.reference, 'paystack_initialized', {
         userId: user.id,
-        amount: plan.customer_price || plan.price,
-        email: user.email
+        amount: finalPrice,
+        email: user.email,
+        isGuest: isGuest
       });
 
       res.json({
         success: true,
         payment_method: 'paystack',
         payment_url: paymentResponse.data.authorization_url,
-        reference: paymentResponse.data.reference
+        reference: paymentResponse.data.reference,
+        discount_applied: !isGuest,
+        original_price: originalPrice,
+        final_price: finalPrice,
+        savings: isGuest ? 0 : (originalPrice - finalPrice)
       });
     } else {
       logger.error('Paystack payment initialization failed', {
         error: paymentResponse.message,
-        userId: user.id
+        userType: isGuest ? 'guest' : 'member'
       });
       res.status(400).json({ error: paymentResponse.message || 'Payment initialization failed' });
     }

@@ -3,10 +3,46 @@ const db = require('../config/db');
 class Transaction {
   // Create a new transaction
   static async create(transactionData) {
-    const { user_id, plan_id, network, phone_number, amount, status, payment_reference, confirmation_method, confirmation_contact, aggregator_response } = transactionData;
+    const { 
+      user_id, 
+      plan_id, 
+      network, 
+      phone_number, 
+      amount, 
+      original_amount,
+      status, 
+      payment_reference, 
+      confirmation_method, 
+      confirmation_contact, 
+      aggregator_response,
+      is_guest,
+      guest_email,
+      guest_name
+    } = transactionData;
     
-    const query = 'INSERT INTO transactions (user_id, plan_id, network, phone_number, amount, status, payment_reference, confirmation_method, confirmation_contact, aggregator_response) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id';
-    const values = [user_id, plan_id, network, phone_number, amount, status, payment_reference, confirmation_method, confirmation_contact, JSON.stringify(aggregator_response || {})];
+    const query = `
+      INSERT INTO transactions (
+        user_id, plan_id, network, phone_number, amount, original_amount, status, 
+        payment_reference, confirmation_method, confirmation_contact, aggregator_response,
+        is_guest, guest_email, guest_name
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id
+    `;
+    const values = [
+      user_id, 
+      plan_id, 
+      network, 
+      phone_number, 
+      amount, 
+      original_amount || amount,
+      status, 
+      payment_reference, 
+      confirmation_method, 
+      confirmation_contact, 
+      JSON.stringify(aggregator_response || {}),
+      is_guest || false,
+      guest_email,
+      guest_name
+    ];
     
     try {
       const result = await db.query(query, values);
@@ -61,10 +97,18 @@ class Transaction {
   // Get transaction by reference
   static async getByReference(reference) {
     const query = `
-      SELECT t.*, dp.size, dp.price, dp.provider, u.full_name, u.email
+      SELECT t.*, dp.size, dp.price, dp.provider, 
+             CASE 
+               WHEN t.is_guest = true THEN t.guest_name
+               ELSE u.full_name
+             END as full_name,
+             CASE 
+               WHEN t.is_guest = true THEN t.guest_email
+               ELSE u.email
+             END as email
       FROM transactions t
       JOIN data_plans dp ON t.plan_id = dp.id
-      JOIN users u ON t.user_id = u.id
+      LEFT JOIN users u ON t.user_id = u.id
       WHERE t.payment_reference = $1`;
     
     try {

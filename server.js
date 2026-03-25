@@ -55,6 +55,7 @@ app.set('trust proxy', 1);
 
 // Serve static files
 app.use("/images", express.static(path.join(__dirname, "images")));
+app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
 // Authentication middleware
 const isAuthenticated = (req, res, next) => {
@@ -81,6 +82,7 @@ app.use("/api", apiRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/payment", require("./routes/payment"));
 app.use("/api/validation", require("./routes/validation"));
+app.use("/api/upload", require("./routes/upload"));
 
 // Health check endpoint for DigitalOcean/Render
 app.get("/health", (req, res) => {
@@ -199,6 +201,11 @@ app.get("/register.html", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "register.html"));
 });
 
+// Upload page - accessible to everyone
+app.get("/upload.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "upload.html"));
+});
+
 // Serve other HTML files with proper authentication
 app.get("/:page", (req, res) => {
   const page = req.params.page;
@@ -223,7 +230,7 @@ app.get("/:page", (req, res) => {
   ];
 
   // List of public pages (accessible to everyone)
-  const publicPages = ["index", "mtn", "telecel", "at", "login", "register"];
+  const publicPages = ["index", "mtn", "telecel", "at", "login", "register", "upload"];
 
   // Handle admin pages specifically
   if (page.startsWith("admin/")) {

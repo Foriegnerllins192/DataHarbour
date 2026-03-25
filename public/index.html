@@ -40,6 +40,12 @@
             <span class="nav-tooltip">AirtelTigo Ghana</span>
           </a>
         </li>
+        <li class="nav-item">
+          <a href="upload.html" class="nav-link">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <span class="nav-tooltip">Upload Images</span>
+          </a>
+        </li>
       </ul>
       
       <div class="navbar-actions">
@@ -513,13 +519,13 @@
       
       navbarNav.classList.toggle('show');
       
-      // Toggle auth buttons if user is not logged in
-      if (authButtons && authButtons.style.display !== 'none') {
+      // Always toggle auth buttons on mobile
+      if (authButtons) {
         authButtons.classList.toggle('show');
       }
       
       // Handle user menu for mobile
-      if (userInfo && userInfo.style.display !== 'none') {
+      if (userInfo) {
         userInfo.classList.toggle('show');
       }
     }
